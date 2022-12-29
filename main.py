@@ -105,6 +105,9 @@ class MyStack(TerraformStack):
                                        billing_mode=DynamoDB_Billing,
                                        hash_key=DynamoDB_Partion_Key,
                                        range_key=DynamoDB_Sortkey,
+                                       server_side_encryption={
+                                           "enabled": True
+                                       },
                                        attribute=[
                                            {
                                                "name": DynamoDB_Partion_Key,
@@ -169,6 +172,11 @@ class MyStack(TerraformStack):
                                                          event_source_arn=dynamodb_table.stream_arn,
                                                          starting_position="LATEST"
                                                          )
+        # Add dynamdb arn and opensearch arn to policy
+        Policy_doc['Statement'][1]['Resource'].append(opensearch_domain.arn)
+        Policy_doc['Statement'][1]['Resource'].append(
+            dynamdb_stream_lambda.arn)
+        iam_policy.policy = json.dumps(Policy_doc)
 
 
 app = App()
