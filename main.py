@@ -7,6 +7,13 @@ from cdktf_cdktf_provider_aws.dynamodb_table import DynamodbTable
 from cdktf_cdktf_provider_aws.lambda_function import LambdaFunction, LambdaFunctionEnvironment
 from cdktf_cdktf_provider_aws.lambda_event_source_mapping import LambdaEventSourceMapping
 from cdktf_cdktf_provider_aws.cloudwatch_log_group import CloudwatchLogGroup
+from cdktf_cdktf_provider_aws.opensearch_domain import OpensearchDomain, OpensearchDomainVpcOptions
+
+# Vpc variables
+Vpc_configs = {
+    "subnet_ids": ["subnet-01623eca4025f6072"],
+    "security_group_ids": ["sg-0985519ebe26980da"]
+}
 
 # DynamoDB varialbes
 DynamoDB_Table = "GameScores"
@@ -18,6 +25,9 @@ DynamoDB_Attribute_Type = 'S'
 # Lambda function vars
 Lambda_Function_Name = "dynamodbStreamFunction"
 Lambda_Function_Log_Group = f"/aws/lambda/{Lambda_Function_Name}"
+
+# Opensearch variables
+Opensearch_domain = "GameScores"
 
 
 class MyStack(TerraformStack):
@@ -61,18 +71,27 @@ class MyStack(TerraformStack):
                                          environment=LambdaFunctionEnvironment(variables={
                                              "URL": "https://example.com"
                                          }),
-                                         vpc_config={
-                                             "subnet_ids": ["subnet-01623eca4025f6072"],
-                                             "security_group_ids": ["sg-0985519ebe26980da"]
-                                         }
+                                         vpc_config=Vpc_configs
                                          )
 
         # DynamoDB Stream event source mapping
         dynamdb_stream_lambda = LambdaEventSourceMapping(self, "lambd_function_stream_trigger",
-                                                               function_name     = lambda_function.function_name,
-                                                               event_source_arn  = dynamodb_table.stream_arn,
-                                                               starting_position = "LATEST"
+                                                               function_name=lambda_function.function_name,
+                                                               event_source_arn=dynamodb_table.stream_arn,
+                                                               starting_position="LATEST"
                                                          )
+
+        # OpenSearch Domain creation
+        opensearch_domain = OpensearchDomain(self, "opensearch_domain", domain_name=Opensearch_domain,
+                                             engine_version="OpenSearch_2.3",
+                                             vpc_options=Vpc_configs,
+                                             cluster_config={
+                                                 "dedicated_master_count": 0,
+                                                 "dedicated_master_enabled": False, 
+                                                 "instance_count": 1,
+                                                 "instance_type": "t3.small.search"
+                                             }
+                                             )
 
 
 app = App()
