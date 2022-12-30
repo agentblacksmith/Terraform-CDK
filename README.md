@@ -21,7 +21,9 @@ The Stack includes,
 2. Lambda Function
 3. Opensearch Domain
 4. Supported IAM Roles and Policy
-5. A sample cloud watch metric alarm for opensearch (more will be added as part of the improvement)
+5. A sample Cloudwatch log lambda function (more will be added as part of the improvement)
+6. A sample Cloudwatch metric alarm for opensearch (more will be added as part of the improvement)
+
 ---
 ## Project Assumptions
 1. The VPC, subnet and security groups were created before the project and utilized here. These can also be automated and in the future versions of this project we can see that. Also only one subnet was created, this was accidently done. Will be creating more.
@@ -78,6 +80,7 @@ The dynamodb is also enabled with the **DynamoDB Streams** with `New and old ima
 ---
 ## Lambda Function [↑](#table-of-content)
 **[Documentation](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html)**
+
 The lambda function uses the following variables
 ```python
 Lambda_Function_Name        = "dynamodbStreamFunction"
@@ -99,12 +102,9 @@ The main parameters used in dynamodb creation for the security and maintainabili
 3. `vpc_config`: This will deploy the lambda to the VPC, in a private subnet where the opensearch is deployed. The security group is structered to enable only the outbound connection and the inbound connection is disabled.
 4. `timeout`: The default timeout value of 3 seconds were increased to 30 seconds.
 5. `environment`: The usage of environment variables in the lambda function code helps to improve maintainability. 
-6. Logs are enabled for more visibility and maintainability. The log group is specifically created for the lambda function. For now the lambda function was enabled with it but can be extended to all the services as mentioned in the section [Scope of Improvement](#scope-of-improvements-↑)
-
-
-
-
-
+> **NOTE:** Logs are enabled for more visibility and maintainability. The log group is specifically created for the lambda function. For now the lambda function was enabled with it but can be extended to all the services as mentioned in the section [Scope of Improvement](#scope-of-improvements-↑)
+>
+> Also CloudTrail can be enabled for tracking the function invocation.
 ---
 ## Opensearch Domain [↑](#table-of-content)
 **[Documentation]()**
