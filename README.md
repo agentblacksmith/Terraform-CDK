@@ -5,6 +5,8 @@
 * [About CDK](#initializing-cdk)
 * [About DynamoDB](#dyanmodb)
 * [About Lambda](#lambda-function)
+* [About Opensearch](#opensearch-domain)
+* [About IAM Resources](#iam-resources)
 
 This project motive is to create a stack with AWS opensearch, Dynamodb. For reference I have used the contents from the [AWS Official Documentation](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/integrations.html#integrations-dynamodb)
 
@@ -57,12 +59,35 @@ The main parameters used in dynamodb creation for the security and maintainabili
 
 Apart from these, an `IAM Role` was created for the accessibility with only the base access permissions. The policy documenation can be found [here](policy.json)
 
-### Lambda Function
+---
+## Lambda Function [↑](#table-of-content)
 
+---
+## Opensearch Domain [↑](#table-of-content)
 
+---
+## IAM Resources [↑](#table-of-content)
 
+---
+## Scope of Improvements [↑](#table-of-content)
+* The current project used a single stack and it is not a best practice to write everything in a single Class init method. This area need improvement and need to check what are the possibilities to make the methods more general.
 
-The current project is used a single stack and it is not a best practice to write everything in a single Class init method. This area need improvement and need to check what are the possibilities to make the methods more general.
+* This stack didn't utilize the terraform modules yet, these are something that I have read about and I strongly believe we have to use it. From what I have read so far these modules can be included as part of the `cdktf.json` file. Need more insight in these.
 
-This stack didn't utilize the terraform modules yet, these are something that I have read about and I strongly believe we have to use it. From what I have read so far these modules can be included as part of the `cdktf.json` file. Need more insight in these.
-
+---
+## Further Reading [↑](#table-of-content)
+* CDKTF
+    - [link1]()
+    - [link2]()
+* Dynamodb
+    - [link1]()
+    - [link2]()
+* Lambda
+    - [link1]()
+    - [link2]()
+* Opensearch Domain
+    - [link1]()
+    - [link2]()
+* IAM Resouces
+    - [link1]()
+    - [link2]()
