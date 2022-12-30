@@ -9,19 +9,19 @@ from cdktf_cdktf_provider_aws.lambda_function import LambdaFunction, LambdaFunct
 from cdktf_cdktf_provider_aws.lambda_event_source_mapping import LambdaEventSourceMapping
 from cdktf_cdktf_provider_aws.cloudwatch_log_group import CloudwatchLogGroup
 from cdktf_cdktf_provider_aws.opensearch_domain import OpensearchDomain, OpensearchDomainDomainEndpointOptions, OpensearchDomainEbsOptions
-from cdktf_cdktf_provider_aws.opensearch_domain_policy import OpensearchDomainPolicy
 from cdktf_cdktf_provider_aws.iam_role import IamRole
 from cdktf_cdktf_provider_aws.iam_policy import IamPolicy
 from cdktf_cdktf_provider_aws.iam_role_policy_attachment import IamRolePolicyAttachment
-from cdktf_cdktf_provider_aws.iam_service_linked_role import IamServiceLinkedRole
+
+# Monitoring modules
+from cdktf_cdktf_provider_aws.cloudwatch_metric_alarm import CloudwatchMetricAlarm
+
 
 # AWS variables
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 Account_ID = os.environ.get("ACCOUNT_ID", "865227664036")
 
 # IAM variables
-# Service_role = os.environ.get("SERVICE_ROLE","dynamodb-opeansearch-stream-lambda-role-ocu941je")
-# Service_role_arn = f"arn:aws:iam::{Account_ID}:role/service-role/{Service_role}"
 with open(os.path.abspath('policy.json')) as policy_doc:
     Policy_doc = json.load(policy_doc)
 with open(os.path.abspath('lambda_assume_policy.json')) as policy_doc:
@@ -69,6 +69,10 @@ Opensearch_zone_awareness_enabled = False
 Opensearch_ebs_enabled = True
 Opensearch_volume_size = 10
 Opensearch_ttl_policy = "Policy-Min-TLS-1-2-2019-07"
+
+# Cloudwatch varialbes
+OS_CW_free_storage_space_alert_threshold = int(
+    max(Opensearch_volume_size - (Opensearch_volume_size * 70 / 100), 0))
 
 # def apply_opensearch_policy(opensearch_domain_arn, iam_role_arn):
 #     Opensearch_policy["Statement"][0]["Resource"] = f"{opensearch_domain_arn}/*"
@@ -150,6 +154,27 @@ class MyStack(TerraformStack):
                                                  "enabled": True
                                              }
                                              )
+        OS_CW_free_storage_space_alert = CloudwatchMetricAlarm(self, "OS_CW_free_storage_space_too_low",
+                                                               metric_name="FreeStorageSpace",
+                                                               namespace="AWS/ES",
+                                                               alarm_name="Opensearch_node_free_storage_space_too_low",
+                                                               comparison_operator="LessThanOrEqualToThreshold",
+                                                               evaluation_periods=1,
+                                                               period=60,
+                                                               datapoints_to_alarm=1,
+                                                               statistic="Minimum",
+                                                               depends_on=[
+                                                                   opensearch_domain],
+                                                               threshold=OS_CW_free_storage_space_alert_threshold,
+                                                               dimensions={
+                                                                   "DomainName": opensearch_domain.domain_name
+                                                               },
+                                                               actions_enabled=True,
+                                                               alarm_actions=[
+                                                                   "arn:aws:sns:us-east-1:865227664036:Default_CloudWatch_Alarms_Topic"],
+                                                               ok_actions=[
+                                                                   "arn:aws:sns:us-east-1:865227664036:Default_CloudWatch_Alarms_Topic"],
+                                                               alarm_description=f"Minimum free disk space on a single node under above 70%. Current space: {OS_CW_free_storage_space_alert_threshold} GB")
 
         # opensearch_iam_policy = IamServiceLinkedRole(self,
         #                                 "opensearch_policy",
@@ -160,7 +185,6 @@ class MyStack(TerraformStack):
         #                                 # policy=apply_opensearch_policy(opensearch_domain_arn=opensearch_domain.arn, iam_role_arn=iam_role.arn)
         #                                 )
 
-        
         # Lambda function creation
         lambda_function = LambdaFunction(self, Lambda_Function_Name,
                                          function_name=Lambda_Function_Name,
@@ -195,15 +219,9 @@ class MyStack(TerraformStack):
         iam_policy.policy = json.dumps(Policy_doc)
 
 
-class MonitoringStack(TerraformStack):
-    def __init__(self, scope: Construct, ns: str):
-        super().__init__(scope, ns)
-        AwsProvider(self, "AWS", region=AWS_REGION)
-
-
 app = App()
 stack = MyStack(app, "learn-cdktf-dynamdb")
-monitoring_stack = MonitoringStack(app, "monitoring")
+
 # RemoteBackend(stack,
 #               hostname='app.terraform.io',
 #               organization='example-org-8df812',
