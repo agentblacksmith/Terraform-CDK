@@ -2,7 +2,7 @@
 
 <img src="http://ForTheBadge.com/images/badges/made-with-python.svg" alt="drawing" style="width:190px;"/> 
 
-
+> ⚠️ All the variables are still inside the main.py, this will be moved to a separate file in the coming versions
 
 ## Table of Content
 * [Project Assumptions](#project-assumptions)
