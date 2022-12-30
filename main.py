@@ -206,6 +206,7 @@ class MyStack(TerraformStack):
                                                          event_source_arn=dynamodb_table.stream_arn,
                                                          starting_position="LATEST"
                                                          )
+        
         # Add dynamdb arn and opensearch arn to policy
         Policy_doc['Statement'][1]['Resource'].append(
             f"{opensearch_domain.arn}/*")

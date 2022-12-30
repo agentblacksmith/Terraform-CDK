@@ -107,7 +107,10 @@ The main parameters used in dynamodb creation for the security and maintainabili
 > Also CloudTrail can be enabled for tracking the function invocation.
 ---
 ## Opensearch Domain [↑](#table-of-content)
-**[Documentation]()**
+:link: **[Documentation](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html)**
+**[Terraform Doc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/elasticsearch_domain#vpc_options)**
+* Opensearch domain is where the data from dynamodb table is finally stored. For simplicity, only the basic functions were tested.
+* 
 
 ---
 ## IAM Resources [↑](#table-of-content)
