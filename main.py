@@ -56,11 +56,12 @@ DynamoDB_Attribute_Type = 'S'
 
 # Lambda function vars
 Lambda_Function_Name = "dynamodbStreamFunction"
-Lambda_Function_Log_Group = f"/aws/lambda/{Lambda_Function_Name}"
 Lambda_Function_Handler = "sample.handler"
 Lambda_Function_Payload = "lambda-opensearch.zip"
 Lambda_Function_Timeout = 30
 Lambda_log_retention = 3
+Lambda_Function_Log_Group = f"/aws/lambda/{Lambda_Function_Name}"
+
 
 # Opensearch variables
 Opensearch_domain = "gamescores-domain"
@@ -72,6 +73,7 @@ Opensearch_dedicated_master_enabled = False
 Opensearch_zone_awareness_enabled = False
 Opensearch_ebs_enabled = True
 Opensearch_volume_size = 10
+Opensearch_enable_https = True
 Opensearch_ttl_policy = "Policy-Min-TLS-1-2-2019-07"
 
 # Cloudwatch varialbes
@@ -96,7 +98,6 @@ class MyStack(TerraformStack):
                                description='lambda to handle dynamodb stream and opensearch',
                                policy=json.dumps(Policy_doc)
                                )
-
         iam_role = IamRole(self,
                            IAM_role_name,
                            name=IAM_role_name,
@@ -150,7 +151,7 @@ class MyStack(TerraformStack):
                                              access_policies=json.dumps(
                                                  Opensearch_policy),
                                              domain_endpoint_options=OpensearchDomainDomainEndpointOptions(
-                                                 enforce_https=True,
+                                                 enforce_https=Opensearch_enable_https,
                                                  tls_security_policy=Opensearch_ttl_policy),
                                              ebs_options=OpensearchDomainEbsOptions(
                                                  ebs_enabled=Opensearch_ebs_enabled, volume_size=Opensearch_volume_size),

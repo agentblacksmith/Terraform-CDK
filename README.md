@@ -38,6 +38,11 @@ After `cdktf` installed, initialize inside and empty directory using the cdk:
 ```shell
 cdktf init --template=python
 ```
+
+The required provider can be installed or upgraded anytime using 
+```shell
+cdktf provider add "aws@~>4.0"
+```
 This initializes the terraform with backend as terraform cloud. 
 We can add our code in the `main.py` in the `__init__` function created for our stack by cdktf.
 > **Note:** I had a few issues with setting this up but I wanted to try this option so used the same. Still have some issue so the current project is using the local `tfstate` file. 
@@ -57,6 +62,7 @@ DynamoDB_Partion_Key    = 'UserId'
 DynamoDB_Sortkey        = 'GameTitle'
 DynamoDB_Attribute_Type = 'S'
 ```
+### Parameters used:
 The main parameters used in dynamodb creation for the security and maintainability are:
 1. `billing_mode`: I used the `PAY_PER_REQUEST` for the demo but for production usecases we have to make use of `PROVISIONED` mode (Default). [About billing_mode](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table#billing_mode)
 2. `hash_key`: This is the partition key and it is a mandatory field as far as the dynamodb is considered. 
@@ -71,7 +77,23 @@ The dynamodb is also enabled with the **DynamoDB Streams** with `New and old ima
 
 ---
 ## Lambda Function [↑](#table-of-content)
-**[Documentation]()**
+**[Documentation](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html)**
+The lambda function uses the following variables
+```python
+Lambda_Function_Name        = "dynamodbStreamFunction"
+Lambda_Function_Handler     = "sample.handler"
+Lambda_Function_Payload     = "lambda-opensearch.zip"
+Lambda_Function_Timeout     = 30
+Lambda_log_retention        = 3
+Lambda_Function_Log_Group   = f"/aws/lambda/{Lambda_Function_Name}"
+```
+* A custom code written in python and boto3 to get the temporary credentials for accessing resources. For the sake of simplicity some of the values like, the index were hardcoded. But these can be separated and put in the Environment variable. One such variable is the host variable and it holds the Opensearch domain entpoint getting created as part of the stack. Becuase of this dependency, the lambda fuction was enabled with paramter `depends_on` and it points to the opensearch.
+* The main function of code is that it gets the 
+
+### Parameters used:
+The main parameters used in dynamodb creation for the security and maintainability are:
+
+1. 
 
 ---
 ## Opensearch Domain [↑](#table-of-content)
@@ -88,6 +110,7 @@ The dynamodb is also enabled with the **DynamoDB Streams** with `New and old ima
 * This stack didn't utilize the terraform modules yet, these are something that I have read about and I strongly believe we have to use it. From what I have read so far these modules can be included as part of the `cdktf.json` file. Need more insight in these.
 
 * Cloudwatch monitoring for all the services with important alerts.
+* Dynamically access values for Account ID, Security Groups, Subnets etc
 
 ---
 ## Further Reading [↑](#table-of-content)
