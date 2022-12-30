@@ -1,20 +1,24 @@
 #!/usr/bin/env python
 import os
 import json
+# Terraform modules
 from constructs import Construct
 from cdktf import App, TerraformStack, RemoteBackend, NamedRemoteWorkspace, TerraformOutput
 from cdktf_cdktf_provider_aws.provider import AwsProvider
+# Dynamodb modules
 from cdktf_cdktf_provider_aws.dynamodb_table import DynamodbTable
+# Lambda function modules
 from cdktf_cdktf_provider_aws.lambda_function import LambdaFunction, LambdaFunctionEnvironment
 from cdktf_cdktf_provider_aws.lambda_event_source_mapping import LambdaEventSourceMapping
-from cdktf_cdktf_provider_aws.cloudwatch_log_group import CloudwatchLogGroup
+# Opensearch modules
 from cdktf_cdktf_provider_aws.opensearch_domain import OpensearchDomain, OpensearchDomainDomainEndpointOptions, OpensearchDomainEbsOptions
+# IAM modules
 from cdktf_cdktf_provider_aws.iam_role import IamRole
 from cdktf_cdktf_provider_aws.iam_policy import IamPolicy
 from cdktf_cdktf_provider_aws.iam_role_policy_attachment import IamRolePolicyAttachment
-
 # Monitoring modules
 from cdktf_cdktf_provider_aws.cloudwatch_metric_alarm import CloudwatchMetricAlarm
+from cdktf_cdktf_provider_aws.cloudwatch_log_group import CloudwatchLogGroup
 
 
 # AWS variables
@@ -175,15 +179,6 @@ class MyStack(TerraformStack):
                                                                ok_actions=[
                                                                    "arn:aws:sns:us-east-1:865227664036:Default_CloudWatch_Alarms_Topic"],
                                                                alarm_description=f"Minimum free disk space on a single node under above 70%. Current space: {OS_CW_free_storage_space_alert_threshold} GB")
-
-        # opensearch_iam_policy = IamServiceLinkedRole(self,
-        #                                 "opensearch_policy",
-        #                                 aws_service_name=
-        #                                 # name = "opensearch_policy",
-        #                                 depends_on=[opensearch_domain],
-        #                                 # role=iam_role.name,
-        #                                 # policy=apply_opensearch_policy(opensearch_domain_arn=opensearch_domain.arn, iam_role_arn=iam_role.arn)
-        #                                 )
 
         # Lambda function creation
         lambda_function = LambdaFunction(self, Lambda_Function_Name,
