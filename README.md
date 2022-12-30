@@ -69,7 +69,7 @@ The main parameters used in dynamodb creation for the security and maintainabili
 3. `server_side_encryption`: This values is used to encrypt the data at rest and AWS KMS key is being used for this purpose.
 4. `stream_enabled`: This value is set to `True` for the streams to be sent for processing. This helps in better maintainablility. The trigger is a [Lambda function](#lambda-function) created as part of the stack.
 
-* An `IAM Role` was created for the accessibility with only the base access permissions. The policy documenation can be found [here](policy.json). More can be found in the [IAM Resources](#iam-resources-↑) section. I had made use of some of the best practices like *Encryption at rest*, *Use IAM roles to authenticate access to DynamoDB* etc as mentioned [here](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices-security-preventative.html). 
+* An `IAM Role` was created for the accessibility with only the base access permissions. The policy documenation can be found [policy.json](policy.json). More can be found in the [IAM Resources](#iam-resources-↑) section. I had made use of some of the best practices like *Encryption at rest*, *Use IAM roles to authenticate access to DynamoDB* etc as mentioned [here](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices-security-preventative.html). 
 * Apart from this we can also enable the **Point-in-time recovery (PITR)** for *the continuous backups of your DynamoDB data for 35 days to help you protect against accidental write or deletes* and as well as the **Global Replicas** for high availability. These values were not set because it may incur some additional charges.
 
 The dynamodb is also enabled with the **DynamoDB Streams** with `New and old images` as the `view type`. With this we can not only capture the new changes, but can also view what was the state before change. These are logged in the Cloudwatch logs using the `Lambda Function` trigger. More about this Lambda function refer [here](#lambda-function-↑)
@@ -88,12 +88,22 @@ Lambda_log_retention        = 3
 Lambda_Function_Log_Group   = f"/aws/lambda/{Lambda_Function_Name}"
 ```
 * A custom code written in python and boto3 to get the temporary credentials for accessing resources. For the sake of simplicity some of the values like, the index were hardcoded. But these can be separated and put in the Environment variable. One such variable is the host variable and it holds the Opensearch domain entpoint getting created as part of the stack. Becuase of this dependency, the lambda fuction was enabled with paramter `depends_on` and it points to the opensearch.
-* The main function of code is that it gets the 
+* The main function of the code is tp get the update from Dynamodb table and with event and update the opnesearch with the value. This function also queries the opensearch and gets the last written data from the index mentioned inside the code. 
+* This query step was implemented because the Opensearch was deployed in a private access where the access was only given from the lambda function security group.
 
 ### Parameters used:
 The main parameters used in dynamodb creation for the security and maintainability are:
 
-1. 
+1. `role`: The IAM role with limitied access. This is attached with [policy.json](policy.json). The attached role is also enabled with a Trust Relationship to assume the role. This policy can be found [here](lambda_assume_policy.json). More about IAM Roles and Policy used can be found in the [IAM Resources](#iam-resources-↑) section.
+2. `publish = True`: To set the lambda versioning for each change in the source code. 
+3. `vpc_config`: This will deploy the lambda to the VPC, in a private subnet where the opensearch is deployed. The security group is structered to enable only the outbound connection and the inbound connection is disabled.
+4. `timeout`: The default timeout value of 3 seconds were increased to 30 seconds.
+5. `environment`: The usage of environment variables in the lambda function code helps to improve maintainability. 
+6. Logs are enabled for more visibility and maintainability. The log group is specifically created for the lambda function. For now the lambda function was enabled with it but can be extended to all the services as mentioned in the section [Scope of Improvement](#scope-of-improvements-↑)
+
+
+
+
 
 ---
 ## Opensearch Domain [↑](#table-of-content)

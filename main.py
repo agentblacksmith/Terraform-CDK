@@ -91,7 +91,7 @@ class MyStack(TerraformStack):
         super().__init__(scope, ns)
         AwsProvider(self, "AWS", region=AWS_REGION)
 
-        # IAM Policy
+        # IAM Resources
         iam_policy = IamPolicy(self,
                                IAM_policy_name,
                                name=IAM_policy_name,
