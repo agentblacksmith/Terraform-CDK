@@ -108,7 +108,8 @@ The main parameters used in dynamodb creation for the security and maintainabili
 ---
 ## Opensearch Domain [↑](#table-of-content)
 :bulb: **[Documentation](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html)**
-**[Terraform Doc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/elasticsearch_domain#vpc_options)**
+
+:bulb: **[Terraform Doc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/elasticsearch_domain#vpc_options)**
 * Opensearch domain is where the data from dynamodb table is finally stored. For simplicity, only the basic functions were tested.
 * 
 
