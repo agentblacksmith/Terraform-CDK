@@ -75,7 +75,13 @@ Opensearch_ebs_enabled = True
 Opensearch_volume_size = 10
 Opensearch_enable_https = True
 Opensearch_ttl_policy = "Policy-Min-TLS-1-2-2019-07"
-
+Opensearch_cluster_config = {
+                              "dedicated_master_count": Opnesearch_dedicated_master_count,
+                              "dedicated_master_enabled": Opensearch_dedicated_master_enabled,
+                              "instance_count": Opensearch_data_node_count,
+                              "instance_type": Opensearch_instance_type,
+                              "zone_awareness_enabled": Opensearch_zone_awareness_enabled
+                          }
 # Cloudwatch varialbes
 OS_CW_free_storage_space_alert_threshold = int(
     max(Opensearch_volume_size - (Opensearch_volume_size * 70 / 100), 0))
@@ -141,13 +147,7 @@ class MyStack(TerraformStack):
                                              domain_name=Opensearch_domain,
                                              engine_version=Opensearch_version,
                                              vpc_options=Vpc_configs_opensearch,
-                                             cluster_config={
-                                                 "dedicated_master_count": Opnesearch_dedicated_master_count,
-                                                 "dedicated_master_enabled": Opensearch_dedicated_master_enabled,
-                                                 "instance_count": Opensearch_data_node_count,
-                                                 "instance_type": Opensearch_instance_type,
-                                                 "zone_awareness_enabled": Opensearch_zone_awareness_enabled
-                                             },
+                                             cluster_config=Opensearch_cluster_config,
                                              access_policies=json.dumps(
                                                  Opensearch_policy),
                                              domain_endpoint_options=OpensearchDomainDomainEndpointOptions(
@@ -180,6 +180,28 @@ class MyStack(TerraformStack):
                                                                ok_actions=[
                                                                    "arn:aws:sns:us-east-1:865227664036:Default_CloudWatch_Alarms_Topic"],
                                                                alarm_description=f"Minimum free disk space on a single node under above 70%. Current space: {OS_CW_free_storage_space_alert_threshold} GB")
+
+        DDB_CW_table_throttle_alert = CloudwatchMetricAlarm(self, "DDB_CW_table_throttle_",
+                                                              alarm_name="Opensearch_node_free_storage_space_too_low",
+                                                              alarm_description=f"Requests are being throttled to the {dynamodb_table.name} table",
+                                                              metric_name="ThrottledRequests",
+                                                              namespace="AWS/DynamoDB",
+                                                              comparison_operator="GreaterThanThreshold",
+                                                              evaluation_periods=1,
+                                                              period=60,
+                                                              statistic="Sum",
+                                                              depends_on=[
+                                                                   dynamodb_table],
+                                                              threshold=0,
+                                                              dimensions={
+                                                                   "TableName": dynamodb_table.name
+                                                               },
+                                                               actions_enabled=True,
+                                                               alarm_actions=[
+                                                                   "arn:aws:sns:us-east-1:865227664036:Default_CloudWatch_Alarms_Topic"],
+                                                               ok_actions=[
+                                                                   "arn:aws:sns:us-east-1:865227664036:Default_CloudWatch_Alarms_Topic"]
+                                                               )
 
         # Lambda function creation
         lambda_function = LambdaFunction(self, Lambda_Function_Name,

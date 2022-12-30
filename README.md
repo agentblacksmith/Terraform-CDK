@@ -99,7 +99,7 @@ The main parameters used in dynamodb creation for the security and maintainabili
 
 1. `role`: The IAM role with limitied access. This is attached with [policy.json](policy.json). The attached role is also enabled with a Trust Relationship to assume the role. This policy can be found [here](lambda_assume_policy.json). More about IAM Roles and Policy used can be found in the [IAM Resources](#iam-resources-↑) section.
 2. `publish = True`: To set the lambda versioning for each change in the source code. 
-3. `vpc_config`: This will deploy the lambda to the VPC, in a private subnet where the opensearch is deployed. The security group is structered to enable only the outbound connection and the inbound connection is disabled.
+3. `vpc_config`: This will deploy the lambda to the dedicated VPC, in a private subnet where the opensearch is deployed. The security group is structered to enable only the outbound connection and the inbound connection is disabled.
 4. `timeout`: The default timeout value of 3 seconds were increased to 30 seconds.
 5. `environment`: The usage of environment variables in the lambda function code helps to improve maintainability. 
 > **NOTE:** Logs are enabled for more visibility and maintainability. The log group is specifically created for the lambda function. For now the lambda function was enabled with it but can be extended to all the services as mentioned in the section [Scope of Improvement](#scope-of-improvements-↑)
@@ -109,13 +109,53 @@ The main parameters used in dynamodb creation for the security and maintainabili
 ## Opensearch Domain [↑](#table-of-content)
 :bulb: [**[Documentation](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html)**]
 [**[Terraform Doc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/elasticsearch_domain#vpc_options)**]
-* Opensearch domain is where the data from dynamodb table is finally stored. For simplicity, only the basic functions were tested.
-* 
 
+```python
+Opensearch_domain                   = "gamescores-domain"
+Opensearch_version                  = "OpenSearch_2.3"
+Opensearch_instance_type            = "t3.small.search"
+Opensearch_data_node_count          = 1
+Opnesearch_dedicated_master_count   = 0
+Opensearch_dedicated_master_enabled = False
+Opensearch_zone_awareness_enabled   = False
+Opensearch_ebs_enabled              = True
+Opensearch_volume_size              = 10
+Opensearch_enable_https             = True
+Opensearch_ttl_policy               = "Policy-Min-TLS-1-2-2019-07"
+Opensearch_cluster_config = {
+        "dedicated_master_count"   : Opnesearch_dedicated_master_count,
+        "dedicated_master_enabled" : Opensearch_dedicated_master_enabled,
+        "instance_count"           : Opensearch_data_node_count,
+        "instance_type"            : Opensearch_instance_type,
+        "zone_awareness_enabled"   : Opensearch_zone_awareness_enabled
+    }
+```
+* Opensearch domain is where the data from dynamodb table is finally stored. For simplicity, only the basic functions were tested.
+* Also the VPC endpoints can be defined to route the traffic only inside AWS and not going over the internet.
+
+### Parameters used:
+The main parameters used in dynamodb creation for the security and maintainability are:
+1. `vpc_options`: This will deploy the opensearch to the dedicated VPC, in a private subnet where the lambda is deployed. The security group is structered to enable only the inbound connection from the lambda function's security group.
+2. `access_policy`: This policy is defined and attached to opensearch to allow access to opensearch domain for the role defined for lambda.
+3. `cluster_config`: For the demo purpose the Opensearch was enabled for only one availability zone with only one data node and no dedicated master nodes at all. But in case of production use this is not advisable. There should be multi-master multi-data nodes span across all the availability zone. The major options are
+    - `dedicated_master_enabled`    : Set `True` to enable dedicated master as a best practice
+    - `dedicated_master_count`      : This should be minimum 3 for high availability
+    - `instance_count`              : The dedicated data nodes should be 3 for high availability
+    - `instance_type`               : For demo I have used `t3.small.search` but in production use-case always choose according to the demand
+    - `zone_awareness_enabled`      : This should be enabled for Multi AZ config.
+4.  `domain_endpoint_options`: Here we mainly focus on the in transit data security. HTTPS is enabled for the data in transit with the tls policy to be used.
+5. `encrypt_at_rest`: For data encryption at rest KMS keys are enabled.
+
+* Apart from this it is a best practice to have the node to node encryption enabled as well.
+* Also with the fine grained access, we can provide access to the index and even more granular level
+
+The opensearch logging for maintainability 
 ---
 ## IAM Resources [↑](#table-of-content)
 :bulb: [**[Documentation]()**]
-
+* There are 3 IAM policy used here along with an IAM Role to provide all the permissions. 
+    - [policy.json](policy.json): for the lamda function permissions to access dynamodb table, opensearch domain and operations on it, cloudwatch log group operations.
+    - [lambda_assume_policy.json](lambda_assume_policy.json): Enables the trust relationship for the lambda to assume the role created.
 ---
 ## Scope of Improvements [↑](#table-of-content)
 * The current project used a single stack and it is not a best practice to write everything in a single Class init method. This area need improvement and need to check what are the possibilities to make the methods more general.
