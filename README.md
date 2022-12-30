@@ -33,7 +33,7 @@ The Stack includes,
 
 ---
 ## Initializing CDK [↑](#table-of-content)
-:bulb: **[Documentation](https://developer.hashicorp.com/terraform/cdktf)**
+:bulb: [**[Documentation](https://developer.hashicorp.com/terraform/cdktf)**]
 > Installation guide: [CDKTF](https://developer.hashicorp.com/terraform/tutorials/cdktf/cdktf-install)
 
 After `cdktf` installed, initialize inside and empty directory using the cdk:
@@ -52,7 +52,7 @@ We can add our code in the `main.py` in the `__init__` function created for our 
 > The S3 backend will be implemented soon with dynamodb table lock.
 ---
 ## DyanmoDB [↑](#table-of-content)
-:bulb: **[Documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html)**
+:bulb: [**[Documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html)**]
 
 Here I made use of a Dynamdb table with with Partition key and sorting key. There were no global secondary index created but it is a good practice to have them on the production usages.
 The following variables were used:
@@ -79,7 +79,7 @@ The dynamodb is also enabled with the **DynamoDB Streams** with `New and old ima
 
 ---
 ## Lambda Function [↑](#table-of-content)
-:bulb: **[Documentation](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html)**
+:bulb: [**[Documentation](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html)**]
 
 The lambda function uses the following variables
 ```python
@@ -107,15 +107,14 @@ The main parameters used in dynamodb creation for the security and maintainabili
 > Also CloudTrail can be enabled for tracking the function invocation.
 ---
 ## Opensearch Domain [↑](#table-of-content)
-:bulb: **[Documentation](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html)**
-
-:bulb: **[Terraform Doc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/elasticsearch_domain#vpc_options)**
+:bulb: [**[Documentation](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html)**]
+[**[Terraform Doc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/elasticsearch_domain#vpc_options)**]
 * Opensearch domain is where the data from dynamodb table is finally stored. For simplicity, only the basic functions were tested.
 * 
 
 ---
 ## IAM Resources [↑](#table-of-content)
-**[Documentation]()**
+:bulb: [**[Documentation]()**]
 
 ---
 ## Scope of Improvements [↑](#table-of-content)
