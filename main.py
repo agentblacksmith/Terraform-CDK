@@ -182,7 +182,7 @@ class MyStack(TerraformStack):
                                                                alarm_description=f"Minimum free disk space on a single node under above 70%. Current space: {OS_CW_free_storage_space_alert_threshold} GB")
 
         DDB_CW_table_throttle_alert = CloudwatchMetricAlarm(self, "DDB_CW_table_throttle_",
-                                                              alarm_name="Opensearch_node_free_storage_space_too_low",
+                                                              alarm_name=f"{dynamodb_table.name}_throttle",
                                                               alarm_description=f"Requests are being throttled to the {dynamodb_table.name} table",
                                                               metric_name="ThrottledRequests",
                                                               namespace="AWS/DynamoDB",
@@ -191,7 +191,8 @@ class MyStack(TerraformStack):
                                                               period=60,
                                                               statistic="Sum",
                                                               depends_on=[
-                                                                   dynamodb_table],
+                                                                   dynamodb_table
+                                                                   ],
                                                               threshold=0,
                                                               dimensions={
                                                                    "TableName": dynamodb_table.name

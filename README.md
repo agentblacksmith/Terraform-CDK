@@ -53,6 +53,7 @@ We can add our code in the `main.py` in the `__init__` function created for our 
 ---
 ## DyanmoDB [↑](#table-of-content)
 :bulb: [**[Documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html)**]
+[**[Terraform](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table)**]
 
 Here I made use of a Dynamdb table with with Partition key and sorting key. There were no global secondary index created but it is a good practice to have them on the production usages.
 The following variables were used:
@@ -76,10 +77,12 @@ The main parameters used in dynamodb creation for the security and maintainabili
 
 The dynamodb is also enabled with the **DynamoDB Streams** with `New and old images` as the `view type`. With this we can not only capture the new changes, but can also view what was the state before change. These are logged in the Cloudwatch logs using the `Lambda Function` trigger. More about this Lambda function refer [here](#lambda-function-↑)
 
+> NOTE: Also Dynamodb table metric alert are enabled for the throttle alerts
 
 ---
 ## Lambda Function [↑](#table-of-content)
 :bulb: [**[Documentation](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html)**]
+[**[Terraform](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function.html#publish)**]
 
 The lambda function uses the following variables
 ```python
@@ -149,13 +152,22 @@ The main parameters used in dynamodb creation for the security and maintainabili
 * Apart from this it is a best practice to have the node to node encryption enabled as well.
 * Also with the fine grained access, we can provide access to the index and even more granular level
 
-The opensearch logging for maintainability 
+> NOTE: Also Opensearch metric alert are enabled for the data nodes disk space above 70%
+
 ---
 ## IAM Resources [↑](#table-of-content)
 :bulb: [**[Documentation]()**]
 * There are 3 IAM policy used here along with an IAM Role to provide all the permissions. 
     - [policy.json](policy.json): for the lamda function permissions to access dynamodb table, opensearch domain and operations on it, cloudwatch log group operations.
     - [lambda_assume_policy.json](lambda_assume_policy.json): Enables the trust relationship for the lambda to assume the role created.
+    - [opensearch_policy.json](opensearch_policy.json): Provide permission to the lambda role to access opensearch domain and perform operations.
+The policy files doesn't have all the resource `arn` at the beginning, and these are added after the resources are created in the code.
+```python
+        Policy_doc['Statement'][1]['Resource'].append(f"{opensearch_domain.arn}/*")
+        Policy_doc['Statement'][1]['Resource'].append(dynamodb_table.stream_arn)
+        Policy_doc['Statement'][2]['Resource'] = f"{cloudwatch_log_group.arn}:*"
+        iam_policy.policy = json.dumps(Policy_doc)
+```
 ---
 ## Scope of Improvements [↑](#table-of-content)
 * The current project used a single stack and it is not a best practice to write everything in a single Class init method. This area need improvement and need to check what are the possibilities to make the methods more general.
@@ -163,22 +175,27 @@ The opensearch logging for maintainability
 * This stack didn't utilize the terraform modules yet, these are something that I have read about and I strongly believe we have to use it. From what I have read so far these modules can be included as part of the `cdktf.json` file. Need more insight in these.
 
 * Cloudwatch monitoring for all the services with important alerts.
-* Dynamically access values for Account ID, Security Groups, Subnets etc
+* Dynamically access values for Account ID, Security Groups, Subnets etc.
+
 
 ---
 ## Further Reading [↑](#table-of-content)
+* General
+    - [Loading streaming data from Amazon DynamoDB](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/integrations.html#integrations-dynamodb)
 * CDKTF
-    - [link1]()
-    - [link2]()
+    - [CDK for Terraform](https://developer.hashicorp.com/terraform/cdktf)
+    - [Terraform-cdk Examples](https://developer.hashicorp.com/terraform/cdktf/examples)
+    - [cdktf-integration-serverless-python-example](https://github.com/cdktf/cdktf-integration-serverless-python-example)
 * Dynamodb
-    - [link1]()
-    - [link2]()
+    - [DynamoDB preventative security best practices
+](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices-security-preventative.html)
 * Lambda
-    - [link1]()
-    - [link2]()
+    - [Deploy AWS Lambda to VPC with Terraform](https://www.maxivanov.io/deploy-aws-lambda-to-vpc-with-terraform/)
+
 * Opensearch Domain
-    - [link1]()
-    - [link2]()
-* IAM Resouces
-    - [link1]()
-    - [link2]()
+    - [Launching your Amazon OpenSearch Service domains within a VPC
+](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/vpc.html)
+* Cloudwatch
+    - [Resource: aws_cloudwatch_metric_alarm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm)    
+    - [terraform-aws-elasticsearch-cloudwatch-sns-alarms](https://github.com/dubiety/terraform-aws-elasticsearch-cloudwatch-sns-alarms/blob/master/alarms.tf)
+    - [terraform-cloudwatch](https://github.com/skyscrapers/terraform-cloudwatch/blob/master/dynamodb/main.tf)
