@@ -69,13 +69,11 @@ Opensearch_zone_awareness_enabled = False
 Opensearch_ebs_enabled = True
 Opensearch_volume_size = 10
 Opensearch_ttl_policy = "Policy-Min-TLS-1-2-2019-07"
-# Opensearch_domain_arn = f"arn:aws:es:us-east-1:{Account_ID}:domain/"
 
-
-def apply_opensearch_policy(opensearch_domain_arn, iam_role_arn):
-    Opensearch_policy["Statement"][0]["Resource"] = f"{opensearch_domain_arn}/*"
-    Opensearch_policy["Statement"][0]["Principal"]["AWS"] = iam_role_arn
-    return json.dumps(Opensearch_policy)
+# def apply_opensearch_policy(opensearch_domain_arn, iam_role_arn):
+#     Opensearch_policy["Statement"][0]["Resource"] = f"{opensearch_domain_arn}/*"
+#     Opensearch_policy["Statement"][0]["Principal"]["AWS"] = iam_role_arn
+#     return json.dumps(Opensearch_policy)
 
 
 class MyStack(TerraformStack):
@@ -161,6 +159,8 @@ class MyStack(TerraformStack):
         #                                 # role=iam_role.name,
         #                                 # policy=apply_opensearch_policy(opensearch_domain_arn=opensearch_domain.arn, iam_role_arn=iam_role.arn)
         #                                 )
+
+        
         # Lambda function creation
         lambda_function = LambdaFunction(self, Lambda_Function_Name,
                                          function_name=Lambda_Function_Name,
