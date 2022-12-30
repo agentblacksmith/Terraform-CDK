@@ -1,5 +1,7 @@
 # Terraform CDK project with Opensearch, DynamoDB
 
+[![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
+
 ## Table of Content
 * [Project Assumption](#project-assumptions)
 * [About CDK](#initializing-cdk)
