@@ -4,10 +4,10 @@
       {
         "Effect": "Allow",
         "Principal": {
-          "AWS": ""
+          "AWS": "arn:aws:iam::865227664036:role/lambda-opensearch-dynamdb-role"
         },
         "Action": "es:DescribeDomain,es:ESHttp*",
-        "Resource": ""
+        "Resource": "arn:aws:es:us-east-1:865227664036:domain/gamescores-domain"
       }
     ]
   }

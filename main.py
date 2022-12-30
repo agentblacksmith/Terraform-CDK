@@ -13,7 +13,7 @@ from cdktf_cdktf_provider_aws.opensearch_domain_policy import OpensearchDomainPo
 from cdktf_cdktf_provider_aws.iam_role import IamRole
 from cdktf_cdktf_provider_aws.iam_policy import IamPolicy
 from cdktf_cdktf_provider_aws.iam_role_policy_attachment import IamRolePolicyAttachment
-
+from cdktf_cdktf_provider_aws.iam_service_linked_role import IamServiceLinkedRole
 
 # AWS variables
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
@@ -26,7 +26,7 @@ with open(os.path.abspath('policy.json')) as policy_doc:
     Policy_doc = json.load(policy_doc)
 with open(os.path.abspath('lambda_assume_policy.json')) as policy_doc:
     Assume_policy = json.load(policy_doc)
-with open(os.path.abspath('opensearch_polciy.json')) as policy_doc:
+with open(os.path.abspath('opensearch_policy.json')) as policy_doc:
     Opensearch_policy = json.load(policy_doc)
 
 IAM_resource_ID = "lambda-opensearch-dynamdb"
@@ -72,6 +72,12 @@ Opensearch_ttl_policy = "Policy-Min-TLS-1-2-2019-07"
 # Opensearch_domain_arn = f"arn:aws:es:us-east-1:{Account_ID}:domain/"
 
 
+def apply_opensearch_policy(opensearch_domain_arn, iam_role_arn):
+    Opensearch_policy["Statement"][0]["Resource"] = f"{opensearch_domain_arn}/*"
+    Opensearch_policy["Statement"][0]["Principal"]["AWS"] = iam_role_arn
+    return json.dumps(Opensearch_policy)
+
+
 class MyStack(TerraformStack):
     def __init__(self, scope: Construct, ns: str):
         super().__init__(scope, ns)
@@ -84,6 +90,7 @@ class MyStack(TerraformStack):
                                description='lambda to handle dynamodb stream and opensearch',
                                policy=json.dumps(Policy_doc)
                                )
+
         iam_role = IamRole(self,
                            IAM_role_name,
                            name=IAM_role_name,
@@ -96,8 +103,8 @@ class MyStack(TerraformStack):
                                 )
 
         # Cloudwatch log group creation
-        CloudwatchLogGroup(self, "LogGroup", name=Lambda_Function_Log_Group,
-                           retention_in_days=Lambda_log_retention)
+        cloudwatch_log_group = CloudwatchLogGroup(
+            self, "LogGroup", name=Lambda_Function_Log_Group, retention_in_days=Lambda_log_retention)
 
         # DynamoDB Table
         dynamodb_table = DynamodbTable(self, "dynamodb",
@@ -134,7 +141,8 @@ class MyStack(TerraformStack):
                                                  "instance_type": Opensearch_instance_type,
                                                  "zone_awareness_enabled": Opensearch_zone_awareness_enabled
                                              },
-                                             #  access_policies         = json.dumps(Opensearch_policy),
+                                             access_policies=json.dumps(
+                                                 Opensearch_policy),
                                              domain_endpoint_options=OpensearchDomainDomainEndpointOptions(
                                                  enforce_https=True,
                                                  tls_security_policy=Opensearch_ttl_policy),
@@ -144,9 +152,15 @@ class MyStack(TerraformStack):
                                                  "enabled": True
                                              }
                                              )
-        Opensearch_policy["Statement"][0]["Resource"] = opensearch_domain.arn
-        opensearch_domain.access_policies = json.dumps(Opensearch_policy)
 
+        # opensearch_iam_policy = IamServiceLinkedRole(self,
+        #                                 "opensearch_policy",
+        #                                 aws_service_name=
+        #                                 # name = "opensearch_policy",
+        #                                 depends_on=[opensearch_domain],
+        #                                 # role=iam_role.name,
+        #                                 # policy=apply_opensearch_policy(opensearch_domain_arn=opensearch_domain.arn, iam_role_arn=iam_role.arn)
+        #                                 )
         # Lambda function creation
         lambda_function = LambdaFunction(self, Lambda_Function_Name,
                                          function_name=Lambda_Function_Name,
@@ -173,18 +187,27 @@ class MyStack(TerraformStack):
                                                          starting_position="LATEST"
                                                          )
         # Add dynamdb arn and opensearch arn to policy
-        Policy_doc['Statement'][1]['Resource'].append(opensearch_domain.arn)
         Policy_doc['Statement'][1]['Resource'].append(
-            dynamdb_stream_lambda.arn)
+            f"{opensearch_domain.arn}/*")
+        Policy_doc['Statement'][1]['Resource'].append(
+            dynamodb_table.stream_arn)
+        Policy_doc['Statement'][2]['Resource'] = f"{cloudwatch_log_group.arn}:*"
         iam_policy.policy = json.dumps(Policy_doc)
+
+
+class MonitoringStack(TerraformStack):
+    def __init__(self, scope: Construct, ns: str):
+        super().__init__(scope, ns)
+        AwsProvider(self, "AWS", region=AWS_REGION)
 
 
 app = App()
 stack = MyStack(app, "learn-cdktf-dynamdb")
-RemoteBackend(stack,
-              hostname='app.terraform.io',
-              organization='example-org-8df812',
-              workspaces=NamedRemoteWorkspace('learn-cdktf-dynamdb')
-              )
+monitoring_stack = MonitoringStack(app, "monitoring")
+# RemoteBackend(stack,
+#               hostname='app.terraform.io',
+#               organization='example-org-8df812',
+#               workspaces=NamedRemoteWorkspace('learn-cdktf-dynamdb')
+#               )
 
 app.synth()
