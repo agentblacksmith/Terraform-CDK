@@ -3,12 +3,14 @@
 [![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
 
 ## Table of Content
-* [Project Assumption](#project-assumptions)
-* [About CDK](#initializing-cdk)
-* [About DynamoDB](#dyanmodb)
-* [About Lambda](#lambda-function)
-* [About Opensearch](#opensearch-domain)
-* [About IAM Resources](#iam-resources)
+* [Project Assumptions](#project-assumptions)
+* [About CDK](#initializing-cdk-↑)
+* [About DynamoDB](#dyanmodb-↑)
+* [About Lambda](#lambda-function-↑)
+* [About Opensearch](#opensearch-domain-↑)
+* [About IAM Resources](#iam-resources-↑)
+* [Scope for Improvements](#scope-of-improvements-↑)
+* [Further Reading](#further-reading-↑)
 
 This project motive is to create a stack with AWS opensearch, Dynamodb. For reference I have used the contents from the [AWS Official Documentation](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/integrations.html#integrations-dynamodb)
 
@@ -59,22 +61,31 @@ The main parameters used in dynamodb creation for the security and maintainabili
 3. `server_side_encryption`: This values is used to encrypt the data at rest and AWS KMS key is being used for this purpose.
 4. `stream_enabled`: This value is set to `True` for the streams to be sent for processing. This helps in better maintainablility. The trigger is a [Lambda function](#lambda-function) created as part of the stack.
 
-Apart from these, an `IAM Role` was created for the accessibility with only the base access permissions. The policy documenation can be found [here](policy.json)
+* An `IAM Role` was created for the accessibility with only the base access permissions. The policy documenation can be found [here](policy.json). More can be found in the [IAM Resources](#iam-resources-↑) section. I had made use of some of the best practices like *Encryption at rest*, *Use IAM roles to authenticate access to DynamoDB* etc as mentioned [here](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices-security-preventative.html). 
+* Apart from this we can also enable the **Point-in-time recovery (PITR)** for *the continuous backups of your DynamoDB data for 35 days to help you protect against accidental write or deletes* and as well as the **Global Replicas** for high availability. These values were not set because it may incur some additional charges.
+
+The dynamodb is also enabled with the **DynamoDB Streams** with `New and old images` as the `view type`. With this we can not only capture the new changes, but can also view what was the state before change. These are logged in the Cloudwatch logs using the `Lambda Function` trigger. More about this Lambda function refer [here](#lambda-function-↑)
+
 
 ---
 ## Lambda Function [↑](#table-of-content)
+**[Documentation]()**
 
 ---
 ## Opensearch Domain [↑](#table-of-content)
+**[Documentation]()**
 
 ---
 ## IAM Resources [↑](#table-of-content)
+**[Documentation]()**
 
 ---
 ## Scope of Improvements [↑](#table-of-content)
 * The current project used a single stack and it is not a best practice to write everything in a single Class init method. This area need improvement and need to check what are the possibilities to make the methods more general.
 
 * This stack didn't utilize the terraform modules yet, these are something that I have read about and I strongly believe we have to use it. From what I have read so far these modules can be included as part of the `cdktf.json` file. Need more insight in these.
+
+* Cloudwatch monitoring for all the services with important alerts.
 
 ---
 ## Further Reading [↑](#table-of-content)
