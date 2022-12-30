@@ -1,6 +1,6 @@
 # Terraform CDK with Opensearch & DynamoDB
 
-![Terraform](https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white) <img src="http://ForTheBadge.com/images/badges/made-with-python.svg" alt="drawing" style="width:190px;"/> 
+<img src="http://ForTheBadge.com/images/badges/made-with-python.svg" alt="drawing" style="width:190px;"/> 
 
 
 
